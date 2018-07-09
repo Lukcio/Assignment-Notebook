@@ -26,12 +26,18 @@ class MasterViewController: UITableViewController {
             let controllers = split.viewControllers
             detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
+        if let savedData = defaults.object(forKey: "data") as? Data {
+            if let decoded = try? JSONDecoder().decode([Assignment].self, from: savedData) {
+                assignments = decoded
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
         super.viewWillAppear(animated)
         tableView.reloadData()
+        self.saveData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -63,6 +69,7 @@ class MasterViewController: UITableViewController {
             let descriptionTextField = alert.textFields![3] as UITextField
             let assignment = Assignment(title: titleTextField.text!, subject: subjectTextField.text!, dueDate: dueDateTextField.text!, description: descriptionTextField.text!)
             self.assignments.append(assignment)
+            self.saveData()
             self.tableView.reloadData()
             self.saveData()
         }
@@ -98,7 +105,8 @@ class MasterViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
 
         let object = assignments[indexPath.row]
-        cell.textLabel!.text = object.description
+        cell.textLabel!.text = object.title
+        
         return cell
     }
 
@@ -111,6 +119,7 @@ class MasterViewController: UITableViewController {
         if editingStyle == .delete {
             assignments.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
+            saveData()
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
         }
@@ -119,6 +128,13 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let objectToMove = assignments.remove(at: sourceIndexPath.row)
         assignments.insert(objectToMove, at: destinationIndexPath.row)
+        self.saveData()
+    }
+    
+    func saveData() {
+        if let encoded = try? JSONEncoder().encode(assignments) {
+            defaults.set(encoded, forKey:"data")
+        }
     }
 }
 
