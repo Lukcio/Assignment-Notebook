@@ -12,6 +12,8 @@ class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
     var objects = [Any]()
+    var assignments = [Assignment]()
+    let defaults = UserDefaults.standard
 
 
     override func viewDidLoad() {
